@@ -1,0 +1,93 @@
+﻿@using PagedList
+@using PagedList.Mvc
+@using MovieSearch.Models
+@model IPagedList<MovieSearch.Models.Movie>
+
+<table class="table table-striped table-hover table-bordered">
+    <thead>
+        <tr>
+            <th>Название фильма</th>
+            <th>Год</th>
+            <th>Страна</th>
+            <th>Актеры</th>
+            <th>Жанры</th>
+            <th>Редактировать | Удалить</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count() == 0)
+        {
+            <tr>
+                <td>По вашему запросу ничего не найдено</td>
+            </tr>
+        }
+        @foreach (var movie in Model)
+        {
+            <tr id="movie@(movie.Id)">
+                <td>
+                    @Html.DisplayFor(modelItem => movie.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => movie.Year)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => movie.Country.Name)
+                </td>
+                <td>
+                    @foreach (Actor actor in movie.Actors.Take(3))
+                    {
+                        <p>
+                            @Html.DisplayFor(modelItem => actor.Name)
+                        </p>
+                    }
+
+                    @using (Ajax.BeginForm("GetActorsByMovie", "Home", new { movieId = movie.Id }, new AjaxOptions
+                    {
+                        UpdateTargetId = "actorsByMovie",
+                        HttpMethod = "POST",
+                        InsertionMode = InsertionMode.Replace
+                    }))
+                    {
+                        <input class="btn-link" type="submit" data-toggle="modal" data-target="#actorsByMovie" value="Показать всех" />
+                    }
+                </td>
+                <td>
+                    @foreach (Genre genre in movie.Genres.ToList())
+                    {
+                        <p>
+                            @Html.DisplayFor(modelItem => genre.Name)
+                        </p>
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Редактировать", "Edit", new { id = movie.Id }) |
+                    @using (Ajax.BeginForm("Delete", "Home", new { id = movie.Id }, new AjaxOptions
+                    {
+                        UpdateTargetId = "deleteMovie",
+                        HttpMethod = "GET",
+                        InsertionMode = InsertionMode.Replace
+                    }))
+                    {
+                        <input class="btn-link" type="submit" data-toggle="modal" data-target="#deleteMovie" value="Удалить" />
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@Html.PagedListPager(Model, page => Url.Action("GetMoviesBySearch",
+    new
+    {
+        page,
+        //searchBy = Request.Params["searchBy"],
+        //searchText = Request.Params["searchText"],
+        //bySelectCountry = Request.Params["bySelectCountry"],
+        //bySelectGenre = Request.Params["bySelectGenre"]
+        searchBy = ViewBag.searchBy,
+        searchText = ViewBag.searchText,
+        bySelectCountry = ViewBag.bySelectCountry,
+        bySelectGenre = ViewBag.bySelectGenre
+    })
+    , PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "moviesList", InsertionMode = InsertionMode.Replace })
+)

@@ -1,0 +1,62 @@
+﻿@using MovieSearch.Models
+@using PagedList
+@using PagedList.Mvc
+@model IPagedList<MovieSearch.Models.Movie>
+
+@{
+    ViewBag.Title = "Главная страница";
+}
+
+<h2>MovieSearch - поиск фильмов по каталогу</h2>
+<div class="modal fade" id="deleteMovie" role="dialog"></div>
+<div class="modal fade" id="actorsByMovie" role="dialog"></div>
+
+<p>
+    @Html.ActionLink("Добавить фильм", "Create", "Home", null, new { @class = "btn btn-default" })
+</p>
+<hr />
+
+@using (Ajax.BeginForm("GetMoviesBySearch", "Home", null, new AjaxOptions
+{
+    UpdateTargetId = "moviesList",
+    HttpMethod = "POST",
+    InsertionMode = InsertionMode.Replace
+}))
+{
+    <p>
+        @Html.DropDownList(
+            "bySelectGenre",
+            ViewBag.Genres as SelectList,
+            "---Любой жанр---",
+            new { @class = "form-control", style = "display: inline" })
+
+        @Html.DropDownList(
+            "bySelectCountry",
+            ViewBag.Countries as SelectList,
+            "---Любая страна---",
+            new { @class = "form-control", style = "display: inline" })
+    </p>
+    <p>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        Поиск по:
+                        @Html.RadioButton("searchBy", "byName", isChecked: true) Названию
+                        @Html.RadioButton("searchBy", "byActor") Актеру
+                    </span>
+                    @Html.TextBox("searchText", null, new { @class = "form-control" })
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span> Поиск...</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </p>
+}
+
+<hr />
+
+<div id="moviesList">
+    @Html.Partial("_GetMovies", Model)
+</div>
